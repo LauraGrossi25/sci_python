@@ -6,21 +6,33 @@
 #include "board.h"
 #include "scicomm.h"
 
+#define TAM_BUFFER_DAC 200
+#define TAM_BUFFER_ADC 100
+
 volatile Protocol_Header_t g_prot_header = {CMD_NONE,0};
 volatile int g_dado;
 
+uint16_t dac_buffer[TAM_BUFFER_DAC];
+volatile uint16_t adc_buffer[TAM_BUFFER_ADC];
+
+
+__interrupt void INT_myCPUTIMER0_ISR(void);
+__interrupt void INT_myADC0_1_ISR(void);
+
+
+
 //
-// Função Principal
+// Funï¿½ï¿½o Principal
 //
 void main(void)
 {
-    // Inicialização do dispositivo
+    // Inicializaï¿½ï¿½o do dispositivo
     Device_init();
     Interrupt_initModule();
     Interrupt_initVectorTable();
     Board_init();
 
-    // Habilita interrupções globais e de tempo real
+    // Habilita interrupï¿½ï¿½es globais e de tempo real
     EINT;
     ERTM;
 
@@ -39,7 +51,7 @@ void main(void)
                     break;
             }
 
-            // Limpa status de interrupção e reseta comando
+            // Limpa status de interrupï¿½ï¿½o e reseta comando
             SCI_clearInterruptStatus(SCI0_BASE, SCI_INT_RXFF);
             g_prot_header.cmd = CMD_NONE;
         }
@@ -47,10 +59,11 @@ void main(void)
 }
 
 //
-// Rotina de Interrupção da SCI (Recepção)
+// Rotina de Interrupï¿½ï¿½o da SCI (Recepï¿½ï¿½o)
 //
 __interrupt void INT_SCI0_RX_ISR(void)
 {
+    g_dado = 1234;
     uint16_t header[PROTOCOL_HEADER_SIZE];
     uint16_t cmd;
 
@@ -60,4 +73,37 @@ __interrupt void INT_SCI0_RX_ISR(void)
     g_prot_header.cmd = (cmd < CMD_COUNT)? (SCI_Command_e)cmd : CMD_NONE;
 
     Interrupt_clearACKGroup(INT_SCI0_RX_INTERRUPT_ACK_GROUP);
+}
+
+
+
+__interrupt void INT_myADC0_1_ISR(void)
+{
+    static uint16_t cnt_adc = 0;
+
+    cnt_adc = (cnt_adc + 1) % TAM_BUFFER_ADC;
+
+    adc_buffer[cnt_adc] =
+        ADC_readResult(myADC0_RESULT_BASE, myADC0_SOC0);
+
+    ADC_clearInterruptStatus(
+        myADC0_BASE,
+        ADC_INT_NUMBER1);
+
+    Interrupt_clearACKGroup(
+        INT_myADC0_1_INTERRUPT_ACK_GROUP);
+}
+
+
+
+
+__interrupt void INT_myCPUTIMER0_ISR(void)
+{
+    static uint16_t cnt_dac = 0;
+
+    DAC_setShadowValue(
+        myDAC0_BASE,
+        dac_buffer[cnt_dac]);
+
+    cnt_dac = (cnt_dac + 1) % TAM_BUFFER_DAC;
 }
