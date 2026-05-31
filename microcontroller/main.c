@@ -6,9 +6,16 @@
 #include "board.h"
 #include "scicomm.h"
 
+#define TAM_BUFFER_DAC 200
+#define TAM_BUFFER_ADC 100
+
 volatile Protocol_Header_t g_prot_header = {CMD_NONE,0};
 volatile int g_dado;
 
+uint16_t dac_buffer[TAM_BUFFER_DAC];
+volatile uint16_t adc_buffer[TAM_BUFFER_ADC];
+
+__interrupt void INT_myCPUTIMER0_ISR(void);
 __interrupt void INT_myADC0_1_ISR(void);
 
 //
@@ -21,6 +28,13 @@ void main(void)
     Interrupt_initModule();
     Interrupt_initVectorTable();
     Board_init();
+
+    uint16_t i;
+
+for(i = 0; i < TAM_BUFFER_DAC; i++)
+{
+    dac_buffer[i] = 2048;
+}
 
     // Habilita interrup��es globais e de tempo real
     EINT;
@@ -66,7 +80,16 @@ __interrupt void INT_SCI0_RX_ISR(void)
 
 __interrupt void INT_myCPUTIMER0_ISR(void)
 {
-    Interrupt_clearACKGroup(INT_myCPUTIMER0_INTERRUPT_ACK_GROUP);
+    static uint16_t cnt_dac = 0;
+
+    DAC_setShadowValue(
+        myDAC0_BASE,
+        dac_buffer[cnt_dac]);
+
+    cnt_dac = (cnt_dac + 1) % TAM_BUFFER_DAC;
+
+    Interrupt_clearACKGroup(
+        INT_myCPUTIMER0_INTERRUPT_ACK_GROUP);
 }
 
 __interrupt void INT_myADC0_1_ISR(void)
