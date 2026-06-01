@@ -15,6 +15,12 @@ volatile int g_dado;
 uint16_t dac_buffer[TAM_BUFFER_DAC];
 volatile uint16_t adc_buffer[TAM_BUFFER_ADC];
 
+volatile uint32_t adc_isr_count = 0;
+
+volatile uint32_t timer_isr_count = 0;
+
+volatile uint16_t adc_teste = 0;
+
 __interrupt void INT_myCPUTIMER0_ISR(void);
 __interrupt void INT_myADC0_1_ISR(void);
 
@@ -80,6 +86,7 @@ __interrupt void INT_SCI0_RX_ISR(void)
 
 __interrupt void INT_myCPUTIMER0_ISR(void)
 {
+    timer_isr_count++;
     static uint16_t cnt_dac = 0;
 
     DAC_setShadowValue(
@@ -88,12 +95,34 @@ __interrupt void INT_myCPUTIMER0_ISR(void)
 
     cnt_dac = (cnt_dac + 1) % TAM_BUFFER_DAC;
 
+     ADC_forceSOC(
+        myADC0_BASE,
+        myADC0_FORCE_SOC0);
+
+    DEVICE_DELAY_US(10);
+
+    adc_teste =
+        ADC_readResult(
+            myADC0_RESULT_BASE,
+            myADC0_SOC0);
+
+
     Interrupt_clearACKGroup(
         INT_myCPUTIMER0_INTERRUPT_ACK_GROUP);
 }
 
 __interrupt void INT_myADC0_1_ISR(void)
 {
+    adc_isr_count++;
+    static uint16_t cnt_adc = 0;
+
+    adc_buffer[cnt_adc] =
+        ADC_readResult(
+            myADC0_RESULT_BASE,
+            myADC0_SOC0);
+
+    cnt_adc = (cnt_adc + 1) % TAM_BUFFER_ADC;
+
     ADC_clearInterruptStatus(
         myADC0_BASE,
         ADC_INT_NUMBER1);
