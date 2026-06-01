@@ -57,7 +57,7 @@ for(i = 0; i < TAM_BUFFER_DAC; i++)
                     break;
 
                 case CMD_SEND_INT:
-                    protocolSendInt(SCI0_BASE, g_dado);
+                    protocolSendInt(SCI0_BASE, adc_buffer[0]);
                     break;
             }
 
@@ -87,6 +87,7 @@ __interrupt void INT_SCI0_RX_ISR(void)
 __interrupt void INT_myCPUTIMER0_ISR(void)
 {
     timer_isr_count++;
+
     static uint16_t cnt_dac = 0;
 
     DAC_setShadowValue(
@@ -94,18 +95,6 @@ __interrupt void INT_myCPUTIMER0_ISR(void)
         dac_buffer[cnt_dac]);
 
     cnt_dac = (cnt_dac + 1) % TAM_BUFFER_DAC;
-
-     ADC_forceSOC(
-        myADC0_BASE,
-        myADC0_FORCE_SOC0);
-
-    DEVICE_DELAY_US(10);
-
-    adc_teste =
-        ADC_readResult(
-            myADC0_RESULT_BASE,
-            myADC0_SOC0);
-
 
     Interrupt_clearACKGroup(
         INT_myCPUTIMER0_INTERRUPT_ACK_GROUP);

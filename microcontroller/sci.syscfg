@@ -28,6 +28,7 @@ adc1.soc0SampleWindow        = 15;
 adc1.enabledInts             = ["ADC_INT_NUMBER1"];
 adc1.enableInterrupt1        = true;
 adc1.registerInterrupts      = ["1"];
+adc1.soc0Trigger             = "ADC_TRIGGER_CPU1_TINT0";
 adc1.adcInt1.enableInterrupt = true;
 
 cputimer1.$name                    = "myCPUTIMER0";
