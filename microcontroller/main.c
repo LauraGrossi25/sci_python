@@ -39,7 +39,7 @@ void main(void)
 
 for(i = 0; i < TAM_BUFFER_DAC; i++)
 {
-    dac_buffer[i] = 2048;
+    dac_buffer[i] = i * 20;
 }
 
     // Habilita interrup��es globais e de tempo real
@@ -59,6 +59,19 @@ for(i = 0; i < TAM_BUFFER_DAC; i++)
                 case CMD_SEND_INT:
                     protocolSendInt(SCI0_BASE, adc_buffer[0]);
                     break;
+                case CMD_SEND_ADC_BUFFER:
+                {
+                    uint16_t i;
+
+                    for(i = 0; i < TAM_BUFFER_ADC; i++)
+                    {
+                        protocolSendInt(
+                            SCI0_BASE,
+                            adc_buffer[i]);
+                    }
+
+                    break;
+                 }
             }
 
             // Limpa status de interrup��o e reseta comando
@@ -119,3 +132,4 @@ __interrupt void INT_myADC0_1_ISR(void)
     Interrupt_clearACKGroup(
         INT_myADC0_1_INTERRUPT_ACK_GROUP);
 }
+

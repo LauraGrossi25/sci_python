@@ -2,7 +2,7 @@
  * scicomm.h
  *
  *  Created on: 13 de jun de 2025
- *      Author: Guilherme Márcio Soares
+ *      Author: Guilherme Mï¿½rcio Soares
  */
 
 #ifndef SRC_SCICOMM_H_
@@ -17,6 +17,7 @@ typedef enum
     CMD_NONE = 0,
     CMD_RECEIVE_INT,
     CMD_SEND_INT,
+    CMD_SEND_ADC_BUFFER,
     CMD_COUNT
 
 } SCI_Command_e;

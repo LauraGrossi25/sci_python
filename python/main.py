@@ -1,6 +1,7 @@
 import serial
 import struct
 import time
+import matplotlib.pyplot as plt
 
 
 # --- CONFIGURACOES ---
@@ -12,7 +13,7 @@ BAUD_RATE = 115200
 # Comandos (do enum SCI_Command_e)
 CMD_RECEIVE_INT = 1 # Comando para o PC enviar um int para o 28379D
 CMD_SEND_INT    = 2 # Comando para o PC pedir um int para o 28379D
-
+CMD_SEND_ADC_BUFFER = 3
 
 def main():
     """Funcao principal que gerencia a conexao e o menu do usuario."""
@@ -29,6 +30,7 @@ def main():
                 print("\n----- MENU -----")
                 print("1. Enviar um numero inteiro para o 28379D")
                 print("2. Receber um numero inteiro do 28379D")
+                print("3. Receber buffer ADC")
                 print("0. Sair")
                 
                 choice = input("Escolha uma opcao: ")
@@ -37,6 +39,8 @@ def main():
                     send_int(ser)
                 elif choice == '2':
                     receive_int(ser)
+                elif choice == '3':
+                    receive_adc_buffer(ser)
                 elif choice == '0':
                     print("Encerrando o programa.")
                     break
@@ -105,5 +109,42 @@ def receive_int(ser_connection):
     except Exception as e:
         print(f"Ocorreu um erro inesperado: {e}")
 
+def receive_adc_buffer(ser_connection):
+
+    ser_connection.flushInput()
+
+    request_packet = struct.pack('<Bh', CMD_SEND_ADC_BUFFER, 0)
+
+    print("\nSolicitando buffer ADC...")
+    ser_connection.write(request_packet)
+
+    adc_values = []
+
+    for i in range(100):
+
+        data = ser_connection.read(2)
+
+        if len(data) < 2:
+            print("Timeout ao receber dados.")
+            return
+
+        value = struct.unpack('<h', data)[0]
+        adc_values.append(value)
+
+    print("\nPrimeiras 20 amostras:")
+    print(adc_values[:20])
+
+    plt.figure()
+    plt.plot(adc_values)
+    plt.title("Buffer ADC")
+    plt.xlabel("Amostra")
+    plt.ylabel("Valor ADC")
+    plt.grid(True)
+    plt.show()
+
 if __name__ == "__main__":
     main()
+
+
+
+
