@@ -7,7 +7,7 @@
 #include "scicomm.h"
 
 #define TAM_BUFFER_DAC 200
-#define TAM_BUFFER_ADC 100
+#define TAM_BUFFER_ADC 200
 
 volatile Protocol_Header_t g_prot_header = {CMD_NONE,0};
 volatile int g_dado;
@@ -54,6 +54,7 @@ for(i = 0; i < TAM_BUFFER_DAC; i++)
             {
                 case CMD_RECEIVE_INT:
                     g_dado = protocolReceiveInt(SCI0_BASE);
+                    dac_buffer[0] = g_dado;
                     break;
 
                 case CMD_SEND_INT:
@@ -71,7 +72,16 @@ for(i = 0; i < TAM_BUFFER_DAC; i++)
                     }
 
                     break;
-                 }
+                }
+                case CMD_RECEIVE_DAC_BUFFER:
+                {
+                    protocolReceiveBuffer(
+                        SCI0_BASE,
+                        dac_buffer,
+                        TAM_BUFFER_DAC);
+
+                    break;
+                }
             }
 
             // Limpa status de interrup��o e reseta comando

@@ -18,6 +18,7 @@ typedef enum
     CMD_RECEIVE_INT,
     CMD_SEND_INT,
     CMD_SEND_ADC_BUFFER,
+    CMD_RECEIVE_DAC_BUFFER,
     CMD_COUNT
 
 } SCI_Command_e;
@@ -33,7 +34,9 @@ typedef struct
 int protocolReceiveInt(unsigned int sci_base);
 void protocolSendInt(unsigned int sci_base,int data);
 
-
-
+void protocolReceiveBuffer(
+    unsigned int sci_base,
+    uint16_t *buffer,
+    uint16_t size);
 
 #endif /* SRC_SCICOMM_H_ */

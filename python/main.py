@@ -2,6 +2,7 @@ import serial
 import struct
 import time
 import matplotlib.pyplot as plt
+import math
 
 
 # --- CONFIGURACOES ---
@@ -14,6 +15,7 @@ BAUD_RATE = 115200
 CMD_RECEIVE_INT = 1 # Comando para o PC enviar um int para o 28379D
 CMD_SEND_INT    = 2 # Comando para o PC pedir um int para o 28379D
 CMD_SEND_ADC_BUFFER = 3
+CMD_RECEIVE_DAC_BUFFER = 4
 
 def main():
     """Funcao principal que gerencia a conexao e o menu do usuario."""
@@ -31,6 +33,7 @@ def main():
                 print("1. Enviar um numero inteiro para o 28379D")
                 print("2. Receber um numero inteiro do 28379D")
                 print("3. Receber buffer ADC")
+                print("4. Enviar senoide para DAC")
                 print("0. Sair")
                 
                 choice = input("Escolha uma opcao: ")
@@ -41,6 +44,8 @@ def main():
                     receive_int(ser)
                 elif choice == '3':
                     receive_adc_buffer(ser)
+                elif choice == '4':
+                    send_sine_buffer(ser)
                 elif choice == '0':
                     print("Encerrando o programa.")
                     break
@@ -120,7 +125,7 @@ def receive_adc_buffer(ser_connection):
 
     adc_values = []
 
-    for i in range(100):
+    for i in range(200):
 
         data = ser_connection.read(2)
 
@@ -141,6 +146,36 @@ def receive_adc_buffer(ser_connection):
     plt.ylabel("Valor ADC")
     plt.grid(True)
     plt.show()
+
+
+def send_sine_buffer(ser_connection):
+
+    TAM_BUFFER_DAC = 200
+
+    sine_values = []
+
+    for i in range(TAM_BUFFER_DAC):
+
+        value = int(
+            2048 +
+            1800 * math.sin(
+                2.0 * math.pi * i / TAM_BUFFER_DAC))
+
+        sine_values.append(value)
+
+    packet_header = struct.pack(
+        '<Bh',
+        CMD_RECEIVE_DAC_BUFFER,
+        TAM_BUFFER_DAC * 2)
+
+    ser_connection.write(packet_header)
+
+    for value in sine_values:
+        ser_connection.write(
+            struct.pack('<H', value))
+
+    print("Senoide enviada para o DAC.")
+
 
 if __name__ == "__main__":
     main()
