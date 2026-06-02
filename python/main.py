@@ -179,7 +179,11 @@ def send_sine_buffer(ser_connection):
         value = int(
             2048 +
             1800 * math.sin(
-                2.0 * math.pi * i / TAM_BUFFER_DAC))
+                2.0 * math.pi * i / TAM_BUFFER_DAC)
+
+            +
+            500 * math.sin(
+                3.0 * 2.0 * math.pi * i / TAM_BUFFER_DAC))
 
         sine_values.append(value)
 
