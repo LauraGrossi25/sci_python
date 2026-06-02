@@ -3,6 +3,7 @@ import struct
 import time
 import matplotlib.pyplot as plt
 import math
+import numpy as np
 
 
 # --- CONFIGURACOES ---
@@ -145,6 +146,25 @@ def receive_adc_buffer(ser_connection):
     plt.xlabel("Amostra")
     plt.ylabel("Valor ADC")
     plt.grid(True)
+    plt.show()
+
+    adc_centered = np.array(adc_values) - np.mean(adc_values)
+
+    fft_values = np.fft.fft(adc_centered)
+
+    fft_magnitude = np.abs(fft_values)
+
+    fft_magnitude = fft_magnitude / np.max(fft_magnitude)
+
+
+    plt.figure()
+    plt.stem(range(100), fft_magnitude[:100])
+
+    plt.title("Espectro do Sinal Adquirido")
+    plt.xlabel("Componente de Frequência")
+    plt.ylabel("Magnitude")
+    plt.grid(True)
+
     plt.show()
 
 
